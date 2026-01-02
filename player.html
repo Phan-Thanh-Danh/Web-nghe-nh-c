@@ -577,11 +577,7 @@
                 <span>🔀</span>
                 Ngẫu nhiên
             </button>
-            <button class="mode-btn" id="repeatBtn">
-                <span>🔁</span>
-                Lặp lại
-            </button>
-            <button class="mode-btn" id="repeatOneBtn">
+<button class="mode-btn" id="repeatOneBtn">
                 <span>🔂</span>
                 Lặp bài
             </button>
@@ -620,7 +616,8 @@
         let songs = [];
         let currentSongIndex = 0;
         let isPlaying = false;
-        let playMode = 'sequential'; // sequential, shuffle, repeat, repeat-one
+        let isShuffle = false;
+        let isRepeat = false;
         
         // ================= DOM ELEMENTS =================
         const audio = document.getElementById('audio');
@@ -630,7 +627,6 @@
         const rewindBtn = document.getElementById('rewindBtn');
         const forwardBtn = document.getElementById('forwardBtn');
         const shuffleBtn = document.getElementById('shuffleBtn');
-        const repeatBtn = document.getElementById('repeatBtn');
         const repeatOneBtn = document.getElementById('repeatOneBtn');
         const backBtn = document.getElementById('backBtn');
         const progressBar = document.getElementById('progressBar');
@@ -645,26 +641,23 @@
         const albumArt = document.getElementById('albumArt');
         const loadingEl = document.getElementById('loading');
         const songCountEl = document.getElementById('songCount');
-        
+
         // ================= KHỞI TẠO =================
         function init() {
-            // Lấy playlist từ localStorage
             const savedPlaylist = localStorage.getItem('playlist');
-            const savedMode = localStorage.getItem('playMode') || 'sequential';
             const savedIndex = localStorage.getItem('currentIndex') || '0';
+            isShuffle = localStorage.getItem('isShuffle') === 'true';
+            isRepeat = localStorage.getItem('isRepeat') === 'true';
             
             if (savedPlaylist) {
                 songs = JSON.parse(savedPlaylist);
-                playMode = savedMode;
                 currentSongIndex = parseInt(savedIndex);
                 
                 if (songs.length > 0) {
                     loadSong(currentSongIndex);
                     updatePlaylist();
-                    updateModeButtons();
                 }
             } else {
-                // Nếu không có playlist, hiển thị danh sách mẫu
                 loadSampleSongs();
             }
             
@@ -672,28 +665,15 @@
             volumeSlider.value = DEFAULT_VOLUME * 100;
             volumeValue.textContent = `${Math.round(DEFAULT_VOLUME * 100)}%`;
             updateSongCount();
+            updateModeButtons();
+            audio.loop = isRepeat;
         }
-        
+
         function loadSampleSongs() {
             songs = [
-                {
-                    title: "Bài hát mẫu 1",
-                    artist: "Nghệ sĩ 1",
-                    file: "sample1.mp3",
-                    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-                },
-                {
-                    title: "Bài hát mẫu 2",
-                    artist: "Nghệ sĩ 2",
-                    file: "sample2.mp3",
-                    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-                },
-                {
-                    title: "Bài hát mẫu 3",
-                    artist: "Nghệ sĩ 3",
-                    file: "sample3.mp3",
-                    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-                }
+                { title: "Bài hát mẫu 1", artist: "Nghệ sĩ 1", file: "sample1.mp3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+                { title: "Bài hát mẫu 2", artist: "Nghệ sĩ 2", file: "sample2.mp3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+                { title: "Bài hát mẫu 3", artist: "Nghệ sĩ 3", file: "sample3.mp3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" }
             ];
             
             if (songs.length > 0) {
@@ -710,7 +690,6 @@
             currentSongIndex = Math.max(0, Math.min(index, songs.length - 1));
             const song = songs[currentSongIndex];
             
-            // Lưu index hiện tại
             localStorage.setItem('currentIndex', currentSongIndex.toString());
             
             songTitle.textContent = song.title;
@@ -721,16 +700,14 @@
             const audioSrc = song.url || `${MUSIC_FOLDER}${encodeURIComponent(song.file)}`;
             audio.src = audioSrc;
             
-            // Reset progress
             progress.style.width = '0%';
             currentTimeEl.textContent = '0:00';
             durationEl.textContent = '0:00';
             
             updatePlaylist();
             
-            // Auto play nếu đang playing
             if (isPlaying) {
-                setTimeout(() => {
+                 setTimeout(() => {
                     audio.play().catch(e => {
                         console.log('Lỗi phát nhạc:', e);
                         pauseMusic();
@@ -738,7 +715,7 @@
                 }, 100);
             }
         }
-        
+
         function playMusic() {
             if (!audio.src) {
                 loadSong(currentSongIndex);
@@ -767,12 +744,8 @@
         
         function togglePlay() {
             if (songs.length === 0) return;
-            
-            if (isPlaying) {
-                pauseMusic();
-            } else {
-                playMusic();
-            }
+            if (isPlaying) pauseMusic();
+            else playMusic();
         }
         
         // ================= ĐIỀU KHIỂN =================
@@ -780,30 +753,24 @@
             if (songs.length === 0) return;
             
             let newIndex;
-            if (playMode === 'shuffle') {
+            if (isShuffle) {
                 newIndex = getRandomSongIndex();
             } else {
                 newIndex = (currentSongIndex - 1 + songs.length) % songs.length;
             }
             loadSong(newIndex);
-            if (isPlaying) {
-                setTimeout(() => audio.play(), 100);
-            }
         }
         
         function nextSong() {
             if (songs.length === 0) return;
             
             let newIndex;
-            if (playMode === 'shuffle') {
+            if (isShuffle) {
                 newIndex = getRandomSongIndex();
             } else {
                 newIndex = (currentSongIndex + 1) % songs.length;
             }
             loadSong(newIndex);
-            if (isPlaying) {
-                setTimeout(() => audio.play(), 100);
-            }
         }
         
         function rewind10s() {
@@ -824,35 +791,27 @@
             } while (newIndex === currentSongIndex);
             return newIndex;
         }
-        
+
         // ================= CHẾ ĐỘ PHÁT =================
-        function setPlayMode(mode) {
-            playMode = mode;
-            localStorage.setItem('playMode', mode);
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            localStorage.setItem('isShuffle', isShuffle);
             updateModeButtons();
-            
-            // Nếu là chế độ repeat-one, thiết lập loop
-            audio.loop = (mode === 'repeat-one');
         }
-        
+
+        function toggleRepeat() {
+            isRepeat = !isRepeat;
+            audio.loop = isRepeat;
+            localStorage.setItem('isRepeat', isRepeat);
+            updateModeButtons();
+        }
+
         function updateModeButtons() {
-            // Reset tất cả nút
-            [shuffleBtn, repeatBtn, repeatOneBtn].forEach(btn => {
-                btn.classList.remove('active');
-            });
+            if (isShuffle) shuffleBtn.classList.add('active');
+            else shuffleBtn.classList.remove('active');
             
-            // Kích hoạt nút tương ứng
-            switch (playMode) {
-                case 'shuffle':
-                    shuffleBtn.classList.add('active');
-                    break;
-                case 'repeat':
-                    repeatBtn.classList.add('active');
-                    break;
-                case 'repeat-one':
-                    repeatOneBtn.classList.add('active');
-                    break;
-            }
+            if (isRepeat) repeatOneBtn.classList.add('active');
+            else repeatOneBtn.classList.remove('active');
         }
         
         // ================= TIỆN ÍCH =================
@@ -867,7 +826,6 @@
         
         function setProgress(e) {
             if (!audio.duration) return;
-            
             const rect = progressBar.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const width = rect.width;
@@ -883,7 +841,6 @@
         
         function updatePlaylist() {
             playlistEl.innerHTML = '';
-            
             songs.forEach((song, index) => {
                 const item = document.createElement('div');
                 item.className = `playlist-item ${index === currentSongIndex ? 'active' : ''}`;
@@ -902,7 +859,6 @@
                         if (!isPlaying) playMusic();
                     }
                 });
-                
                 playlistEl.appendChild(item);
             });
         }
@@ -925,16 +881,11 @@
         nextBtn.addEventListener('click', nextSong);
         rewindBtn.addEventListener('click', rewind10s);
         forwardBtn.addEventListener('click', forward10s);
-        backBtn.addEventListener('click', () => {
-            // Quay về trang chủ hoặc trang trước
-            window.location.href = 'index.html';
-        });
+        backBtn.addEventListener('click', () => { window.location.href = 'index.html'; });
         
-        // Mode buttons
-        shuffleBtn.addEventListener('click', () => setPlayMode('shuffle'));
-        repeatBtn.addEventListener('click', () => setPlayMode('repeat'));
-        repeatOneBtn.addEventListener('click', () => setPlayMode('repeat-one'));
-        
+        shuffleBtn.addEventListener('click', toggleShuffle);
+        repeatOneBtn.addEventListener('click', toggleRepeat);
+
         audio.addEventListener('timeupdate', updateProgress);
         audio.addEventListener('loadedmetadata', () => {
             durationEl.textContent = formatTime(audio.duration);
@@ -942,17 +893,8 @@
         });
         
         audio.addEventListener('ended', () => {
-            if (playMode === 'repeat-one') {
-                // Lặp lại bài hiện tại
-                audio.currentTime = 0;
-                audio.play();
-            } else if (playMode === 'repeat') {
-                // Lặp lại playlist
-                nextSong();
-            } else {
-                // Chế độ thông thường
-                nextSong();
-            }
+            // This event only fires if audio.loop is false.
+            nextSong();
         });
         
         audio.addEventListener('error', () => {

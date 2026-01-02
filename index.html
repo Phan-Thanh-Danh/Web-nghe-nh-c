@@ -398,22 +398,7 @@
         <div class="header">
             <h1>🎵 Music Library</h1>
             <div class="subtitle">Chọn bài hát yêu thích của bạn</div>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="totalSongs">0</div>
-                    <div class="stat-label">Bài hát</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="totalArtists">0</div>
-                    <div class="stat-label">Nghệ sĩ</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="totalDuration">0:00</div>
-                    <div class="stat-label">Tổng thời gian</div>
-                </div>
-            </div>
-        </div>
+</div>
 
         <div class="filter-bar">
             <div class="search-box">
@@ -424,6 +409,16 @@
             <button class="filter-btn" id="filterAll" data-filter="all">
                 <span>🎵</span>
                 Tất cả
+            </button>
+            
+            <button class="filter-btn" id="filterRecent" data-filter="recent">
+                <span>🕐</span>
+                Gần đây
+            </button>
+            
+            <button class="filter-btn" id="filterPopular" data-filter="popular">
+                <span>🔥</span>
+                Phổ biến
             </button>
         </div>
 
@@ -466,9 +461,6 @@
         const musicGridEl = document.getElementById('musicGrid');
         const searchInput = document.getElementById('searchInput');
         const filterBtns = document.querySelectorAll('.filter-btn');
-        const totalSongsEl = document.getElementById('totalSongs');
-        const totalArtistsEl = document.getElementById('totalArtists');
-        const totalDurationEl = document.getElementById('totalDuration');
         const playSelectedBtn = document.getElementById('playSelectedBtn');
         const playRandomBtn = document.getElementById('playRandomBtn');
         const playAllBtn = document.getElementById('playAllBtn');
@@ -478,7 +470,6 @@
             showLoading();
             await loadMusicLibrary();
             renderMusicGrid();
-            updateStats();
             hideLoading();
         }
         
@@ -516,7 +507,8 @@
         // Tạo danh sách nhạc từ file trong thư mục
         async function createMusicListFromFolder() {
             const musicFiles = [
-                "(151) Co Em Cho - Min (prod.orio) remix - YouTube.mp3",
+                "(151) Co Em Cho - Min (prod.orio) remix - YouTube (1).mp3",
+                "(151) Hà Nội - Obito ft. VSTRA (rmx) - Remake - YouTube.mp3",
                 "(151) EREN - ANHDAUMUON feat. younghao, Bbynascar, Left Hand (OFFICIAL MV) - YouTube.mp3",
                 "(151) EREN - Mua Dong Em Ve (ft. Bbynascar, Taki) - YouTube.mp3",
                 "(151) FALLING IN LOVE (prod.orio) remix - YouTube.mp3",
@@ -694,20 +686,7 @@
             
             renderMusicGrid();
         }
-        
-        // ================= THỐNG KÊ =================
-        function updateStats() {
-            totalSongsEl.textContent = allSongs.length;
-            
-            // Đếm số nghệ sĩ duy nhất
-            const uniqueArtists = new Set(allSongs.map(song => song.artist));
-            totalArtistsEl.textContent = uniqueArtists.size;
-            
-            // Tính tổng thời gian
-            const totalSeconds = allSongs.reduce((sum, song) => sum + song.duration, 0);
-            totalDurationEl.textContent = formatTime(totalSeconds);
-        }
-        
+
         // ================= TIỆN ÍCH =================
         function generateId() {
             return Math.random().toString(36).substr(2, 9);
